@@ -8,41 +8,57 @@ if (!isset($_SESSION['usuario'])) {
     exit();
 }
 
-// Verificar que el producto y la cantidad están presentes
-if (isset($_GET['id_producto']) && isset($_GET['cantidad']) && is_numeric($_GET['id_producto']) && is_numeric($_GET['cantidad'])) {
-    $id_producto = $_GET['id_producto'];
-    $cantidad = $_GET['cantidad'];
+// Verificar que los datos del producto y cantidad son válidos
+if (isset($_GET['id_producto'], $_GET['cantidad']) && is_numeric($_GET['id_producto']) && is_numeric($_GET['cantidad']) && $_GET['cantidad'] > 0) {
+    $id_producto = (int)$_GET['id_producto'];
+    $cantidad = (int)$_GET['cantidad'];
 
-    // Obtener el producto desde la base de datos
     try {
-        $stmt = $pdo->prepare("SELECT id_producto, nombre_producto, precio FROM producto WHERE id_producto = :id_producto");
-        $stmt->bindParam(':id_producto', $id_producto, PDO::PARAM_INT);
-        $stmt->execute();
+        // Obtener información del producto
+        $query = "SELECT id_producto, nombre_producto, precio, stock FROM producto WHERE id_producto = :id_producto";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute([':id_producto' => $id_producto]);
         $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($producto) {
-            // Asegurarse de que el precio se almacene como un decimal
-            $precio_producto = floatval($producto['precio']);  // Convertir a float para asegurar que sea un valor decimal
+            if ($producto['stock'] >= $cantidad) {
+                // Actualizar el stock del producto
+                $nuevoStock = $producto['stock'] - $cantidad;
+                $updateQuery = "UPDATE producto SET stock = :stock WHERE id_producto = :id_producto";
+                $updateStmt = $pdo->prepare($updateQuery);
+                $updateStmt->execute([':stock' => $nuevoStock, ':id_producto' => $id_producto]);
 
-            // Verificar si el producto ya está en el carrito
-            if (isset($_SESSION['carrito'][$id_producto])) {
-                $_SESSION['carrito'][$id_producto]['cantidad'] += $cantidad;
+                // Agregar el producto al carrito
+                $precio_producto = floatval($producto['precio']); // Asegurar que sea un valor decimal
+                if (isset($_SESSION['carrito'][$id_producto])) {
+                    $_SESSION['carrito'][$id_producto]['cantidad'] += $cantidad;
+                } else {
+                    $_SESSION['carrito'][$id_producto] = [
+                        'id_producto' => $producto['id_producto'],
+                        'nombre' => $producto['nombre_producto'],
+                        'precio' => $precio_producto,
+                        'cantidad' => $cantidad
+                    ];
+                }
+
+                $_SESSION['mensaje'] = "Producto agregado al carrito y stock actualizado. Nuevo stock: $nuevoStock.";
+                header("Location: carrito.php");
+                exit();
             } else {
-                $_SESSION['carrito'][$id_producto] = [
-                    'id_producto' => $producto['id_producto'], // Asegurarse de que sea id_producto
-                    'nombre' => $producto['nombre_producto'],
-                    'precio' => $precio_producto,  // Usar el valor decimal
-                    'cantidad' => $cantidad
-                ];
+                $_SESSION['error'] = "Stock insuficiente para este producto.";
+                header("Location: detalles_producto.php?id_producto=$id_producto");
+                exit();
             }
-            header("Location: carrito.php");
         } else {
-            echo "Producto no encontrado.";
+            $_SESSION['error'] = "Producto no encontrado.";
+            header("Location: carrito.php");
+            exit();
         }
     } catch (PDOException $e) {
-        die("Error al agregar el producto al carrito: " . $e->getMessage());
+        die("Error al procesar la solicitud: " . $e->getMessage());
     }
 } else {
-    echo "Datos del producto o cantidad inválidos.";
+    $_SESSION['error'] = "Datos del producto o cantidad inválidos.";
+    header("Location: carrito.php");
+    exit();
 }
-?>

@@ -26,7 +26,7 @@ try {
 
 // Obtener lista de productos
 try {
-    $stmt_producto = $pdo->query("SELECT id_producto, nombre_producto, precio, descripcion, nombre_categoria 
+    $stmt_producto = $pdo->query("SELECT id_producto, nombre_producto, precio, descripcion, nombre_categoria, stock 
                                   FROM producto p
                                   JOIN categoria c ON p.id_categoria = c.id_categoria");
     $productos = $stmt_producto->fetchAll(PDO::FETCH_ASSOC);
@@ -40,14 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nombre_producto'], $_P
     $descripcion = htmlspecialchars($_POST['descripcion']);
     $precio = $_POST['precio'];
     $id_categoria = $_POST['id_categoria'];
+    $stock = $_POST['stock'];
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO producto (nombre_producto, descripcion, precio, id_categoria) 
-                               VALUES (:nombre_producto, :descripcion, :precio, :id_categoria)");
+        $stmt = $pdo->prepare("INSERT INTO producto (nombre_producto, descripcion, precio, id_categoria, stock) 
+                               VALUES (:nombre_producto, :descripcion, :precio, :id_categoria, :stock)");
         $stmt->bindParam(':nombre_producto', $nombre_producto);
         $stmt->bindParam(':descripcion', $descripcion);
         $stmt->bindParam(':precio', $precio);
         $stmt->bindParam(':id_categoria', $id_categoria);
+        $stmt->bindParam(':stock', $stock);
         $stmt->execute();
         header("Location: admin_panel.php");  // Recargar la página después de agregar
         exit();
@@ -203,6 +205,9 @@ if (isset($_POST['id_categoria'])) {
             <label for="precio">Precio:</label>
             <input type="number" name="precio" required step="0.01">
             
+            <label for="stock">Stock:</label>
+            <input type="number" name="stock" required>
+            
             <label for="id_categoria">Categoría:</label>
             <select name="id_categoria" required>
                 <?php foreach ($categorias as $categoria): ?>
@@ -221,6 +226,7 @@ if (isset($_POST['id_categoria'])) {
                     <th>Descripción</th>
                     <th>Precio</th>
                     <th>Categoría</th>
+                    <th>Stock</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -231,11 +237,13 @@ if (isset($_POST['id_categoria'])) {
                         <td><?php echo htmlspecialchars($producto['descripcion']); ?></td>
                         <td><?php echo $producto['precio']; ?></td>
                         <td><?php echo htmlspecialchars($producto['nombre_categoria']); ?></td>
+                        <td><?php echo htmlspecialchars($producto['stock']); ?></td>
                         <td>
                             <form action="admin_panel.php" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este producto?');">
                                 <input type="hidden" name="id_producto" value="<?php echo $producto['id_producto']; ?>">
                                 <button type="submit" class="btn btn-danger">Eliminar</button>
                             </form>
+                            <a href="editar_producto.php?id=<?php echo $producto['id_producto']; ?>" class="btn">Editar</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>

@@ -12,9 +12,8 @@ if (!isset($_SESSION['usuario'])) {
 if (isset($_GET['id_producto']) && is_numeric($_GET['id_producto'])) {
     $id_producto = $_GET['id_producto'];
 
-    // Obtener los detalles del producto desde la base de datos
     try {
-        $stmt = $pdo->prepare("SELECT id_producto, nombre_producto, descripcion, precio FROM producto WHERE id_producto = :id_producto");
+        $stmt = $pdo->prepare("SELECT id_producto, nombre_producto, descripcion, precio, stock FROM producto WHERE id_producto = :id_producto");
         $stmt->bindParam(':id_producto', $id_producto, PDO::PARAM_INT);
         $stmt->execute();
         $producto = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -40,23 +39,21 @@ if (isset($_GET['id_producto']) && is_numeric($_GET['id_producto'])) {
     <title>Detalles del Producto</title>
 </head>
 <body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="categorias.php">Lista de Categorías</a></li>
-                <li><a href="carrito.php">Carrito</a></li>
-                <li><a href="../logout.php" class="btn">Cerrar Sesión</a></li>
-            </ul>
-        </nav>
-    </header>
-
     <div class="container">
         <h1>Detalles del Producto</h1>
+
+        <?php
+        if (isset($_SESSION['error'])) {
+            echo "<p class='error-message'>" . htmlspecialchars($_SESSION['error']) . "</p>";
+            unset($_SESSION['error']); // Eliminar el mensaje después de mostrarlo
+        }
+        ?>
 
         <div class="producto-detalles">
             <h2><?php echo htmlspecialchars($producto['nombre_producto']); ?></h2>
             <p><strong>Descripción:</strong> <?php echo nl2br(htmlspecialchars($producto['descripcion'])); ?></p>
             <p><strong>Precio:</strong> <?php echo number_format($producto['precio'], 2, ',', '.'); ?>€</p>
+            <p><strong>Stock:</strong> <?php echo $producto['stock']; ?></p>
 
             <form action="agregar_carrito.php" method="GET">
                 <label for="cantidad">Cantidad:</label>
@@ -64,6 +61,7 @@ if (isset($_GET['id_producto']) && is_numeric($_GET['id_producto'])) {
                 <input type="hidden" name="id_producto" value="<?php echo $producto['id_producto']; ?>">
                 <button type="submit" class="btn">Añadir al Carrito</button>
             </form>
+            <a href="categorias.php" class="volver">Volver a las Categorías</a>
         </div>
     </div>
     <style>
@@ -185,6 +183,32 @@ header nav ul li a.btn {
 
 header nav ul li a.btn:hover {
     background-color: #c0392b;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 1.2rem;
+    margin-top: 20px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.volver {
+    all: unset;
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.volver:hover {
+    background-color: #45a049;
 }
 
     </style>
