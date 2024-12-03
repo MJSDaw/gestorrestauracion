@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 01-12-2024 a las 15:57:57
+-- Tiempo de generación: 03-12-2024 a las 22:44:17
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `categoria` (
   PRIMARY KEY (`id_categoria`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+
 -- --------------------------------------------------------
 
 --
@@ -46,7 +47,8 @@ CREATE TABLE IF NOT EXISTS `detalles_pedido` (
   PRIMARY KEY (`id_detalles`),
   KEY `fk_detalles_pedido` (`id_pedido`),
   KEY `fk_detalles_producto` (`id_producto`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 -- --------------------------------------------------------
 
@@ -64,7 +66,8 @@ CREATE TABLE IF NOT EXISTS `pedido` (
   `total_pedido` float NOT NULL,
   PRIMARY KEY (`id_pedido`),
   KEY `fk_pedido_restaurante` (`id_restaurante`)
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 -- --------------------------------------------------------
 
@@ -79,9 +82,11 @@ CREATE TABLE IF NOT EXISTS `producto` (
   `nombre_producto` text NOT NULL,
   `descripcion` text NOT NULL,
   `precio` decimal(10,2) NOT NULL,
+  `stock` int(11) DEFAULT 0,
   PRIMARY KEY (`id_producto`),
   KEY `fk_producto_categoria` (`id_categoria`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 -- --------------------------------------------------------
 
